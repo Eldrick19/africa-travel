@@ -19,18 +19,34 @@ os.environ["OPENAI_API_KEY"] = constants.APIKEY
 # Now we can override it and set it to "AI Assistant"
 
 template = """
-The following is a friendly conversation between a human and an AI that helps with booking travel to Africa. 
-The AI is friendly but concise, and will provide details in bullet points when applicable. 
-If the AI does not know the answer to a question, it truthfully says it does not know.
-If a question is asked about a topic not pertinent to travelling to Africa, the AI will respond with "Unfortunately, I am focused on helping you book a trip to Africa, so I do not know the answer to that question."
+You are a friendly AI that is a virtual travel agent to help with preparing for trips to Africa.
+Anytime you list things in your response and would use commas, use bullet points instead. For example
+
+Instead of answering like this: "You will need to provide a valid passport, a valid credit or debit card, flight booking confirmation, accommodation booking or letter of invitation, etc."
+
+Answer like this, when applicable: 
+"- You will need to provide a valid passport
+- A valid credit or debit card
+- Flight booking confirmation
+- Accommodation booking or letter of invitation
+- etc."
+
+If you do not know, say you do not know. Do not try and guess.
+If a visa is not required, say so.
+If vaccines are not required, say so.
+
+--- Context ---
 
 {context}
 
-AI Assistant:"""
+--- Answer ---
+
+"""
 prompt = PromptTemplate.from_template(template)
 prompt.format(context="Only talk about Africa and travel to Africa.")
 
-#loader = TextLoader("data/data.txt") # Use this line if you only need data.txt
+# loader = TextLoader("data/data.txt") # Use this line if you only need data.txt
+# loader = WebBaseLoader("https://www.handyvisas.com/global/senegal-visa/?from=CA") # Use this line if you need all the files in the data directory
 loader = DirectoryLoader("data") # Use this line if you need all the files in the data directory
 documents = loader.load()
 
@@ -44,7 +60,7 @@ vectorstore = Chroma.from_documents(documents, embeddings)
 chain_type_kwargs = {"prompt": prompt}
 qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=vectorstore.as_retriever(), chain_type_kwargs=chain_type_kwargs)
 
-query = "How can I prepare for my trip to Cote d'Ivoire?"
+query = "What are my visa requirements for travelling to Senegal as a Canadian?"
 print(qa.run(query))
 # Create the conversational retrieval chain
 # chain = ConversationalRetrievalChain.from_llm(
@@ -55,14 +71,16 @@ print(qa.run(query))
 # )
 
 # Initialize chat history
-# chat_history = []
+chat_history = []
 
-# # Start the conversation loop
-# while True:
-#   query = input("Prompt: ") # If no query was passed as a command line argument, prompt the user for input
-#   if query in ['quit', 'q', 'exit']: sys.exit() # If the user enters a quit command, exit the program
-#   result = chain({"question": query, "chat_history": chat_history}) # Get the response from the conversational retrieval chain
-#   print(result['answer']) # Print the response
-#   print(result['source_documents'][1]) # Print the source document
-#   chat_history.append((query, result['answer'])) # Add the query and response to the chat history
-#   query = None # Reset the query variable
+# Start the conversation loop
+while True:
+  query = input("Prompt: ") # If no query was passed as a command line argument, prompt the user for input
+  if query in ['quit', 'q', 'exit']: sys.exit() # If the user enters a quit command, exit the program
+  result = qa.run(query)
+  print(result)
+  # result = chain({"question": query, "chat_history": chat_history}) # Get the response from the conversational retrieval chain
+  # print(result['answer']) # Print the response
+  # print(result['source_documents'][1]) # Print the source document
+  chat_history.append((query, result)) # Add the query and response to the chat history
+  query = None # Reset the query variable
