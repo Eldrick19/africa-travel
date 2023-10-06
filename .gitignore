@@ -1,1 +1,3 @@
 __pycache__
+# Ignore the node modules folder, regardless of where it lives.
+node_modules
