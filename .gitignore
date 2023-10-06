@@ -1,3 +1,5 @@
 __pycache__
-# Ignore the node modules folder, regardless of where it lives.
+
+# Vue JS related ignoring
 node_modules
+package-lock.json
