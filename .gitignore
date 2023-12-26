@@ -1,0 +1,5 @@
+__pycache__
+
+# Vue JS related ignoring
+node_modules
+package-lock.json
